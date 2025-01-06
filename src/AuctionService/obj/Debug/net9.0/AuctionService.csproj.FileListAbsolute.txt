@@ -244,3 +244,4 @@ D:\0 - CODING\Net\Neill cummings\MICROSERVICES\src\AuctionService\obj\Debug\net9
 D:\0 - CODING\Net\Neill cummings\MICROSERVICES\src\AuctionService\obj\Debug\net9.0\AuctionService.pdb
 D:\0 - CODING\Net\Neill cummings\MICROSERVICES\src\AuctionService\obj\Debug\net9.0\AuctionService.genruntimeconfig.cache
 D:\0 - CODING\Net\Neill cummings\MICROSERVICES\src\AuctionService\obj\Debug\net9.0\ref\AuctionService.dll
+D:\0 - CODING\Net\Neill cummings\MICROSERVICES\src\AuctionService\obj\Debug\net9.0\AuctionService.sourcelink.json
