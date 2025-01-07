@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddControllers(); // Añadir controladores
+builder.Services.AddControllers();
 // builder.Services.AddEndpointsApiExplorer(); // Para que funcione OpenAPI correctamente (Swagger)
 // builder.Services.AddSwaggerGen(); // Configura Swagger para usarlo
 
