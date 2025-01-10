@@ -3,6 +3,8 @@ using Polly;
 using Polly.Extensions.Http;
 using SearchService.Data;
 using SearchService.Services;
+using MassTransit;
+using SearchService.Consumers;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,7 +14,23 @@ var builder = WebApplication.CreateBuilder(args);
 // builder.Services.AddOpenApi();
 
 builder.Services.AddControllers();
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddHttpClient<AuctionSvcHttpClient>().AddPolicyHandler(GetPolicy());
+builder.Services.AddMassTransit(x => 
+{
+    x.AddConsumersFromNamespaceContaining<AuctionCreatedConsumer>();
+    x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("search", false)); //search-auction-created
+    x.UsingRabbitMq((context, config) => 
+    {
+        config.ReceiveEndpoint("search-auction-created", e =>
+        {
+            e.UseMessageRetry(r => r.Interval(5,5));
+
+            e.ConfigureConsumer<AuctionCreatedConsumer>(context);
+        });
+        config.ConfigureEndpoints(context);
+    });
+});
 
 var app = builder.Build();
 
@@ -43,7 +61,14 @@ app.Lifetime.ApplicationStarted.Register(async () =>
 app.Run();
 
 static IAsyncPolicy<HttpResponseMessage> GetPolicy()
-    => HttpPolicyExtensions
+{
+    return HttpPolicyExtensions
         .HandleTransientHttpError()
         .OrResult(msg => msg.StatusCode == HttpStatusCode.NotFound)
-        .WaitAndRetryForeverAsync(_ => TimeSpan.FromSeconds(3));
+        .WaitAndRetryForeverAsync(_ =>
+        {
+            Console.WriteLine("Arrancando policy process...");
+            return TimeSpan.FromSeconds(3);
+        });
+}
+
