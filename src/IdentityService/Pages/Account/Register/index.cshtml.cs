@@ -18,6 +18,7 @@ namespace IdentityService.Pages.Register
         {
             _userManager = userManager;
         }
+
         [BindProperty]
         public RegisterViewModel Input { get; set; }
 

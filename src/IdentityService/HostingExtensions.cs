@@ -2,6 +2,8 @@ using Duende.IdentityServer;
 using Duende.IdentityServer.Services;
 using IdentityService.Data;
 using IdentityService.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -13,6 +15,8 @@ internal static class HostingExtensions
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddRazorPages();
+        // builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+        // .AddCookie();
 
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -21,15 +25,15 @@ internal static class HostingExtensions
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
-        builder.Services.AddCors(options =>
+        builder.Services.AddSingleton<ICorsPolicyService>((container) =>
         {
-            options.AddPolicy("AllowAll", builder =>
+            var logger = container.GetRequiredService<ILogger<DefaultCorsPolicyService>>();
+
+            return new DefaultCorsPolicyService(logger)
             {
-                builder
-                    .AllowAnyOrigin()
-                    .AllowAnyHeader()
-                    .AllowAnyMethod();
-            });
+                // AllowedOrigins = { "https://foo", "https://bar" }
+                AllowAll = true
+            };
         });
 
         builder.Services
@@ -40,22 +44,20 @@ internal static class HostingExtensions
                 options.Events.RaiseFailureEvents = true;
                 options.Events.RaiseSuccessEvents = true;
 
-                if (builder.Environment.IsEnvironment("Docker"))
-                {
-                    options.IssuerUri = "identity-svc";
-                }
+                // if (builder.Environment.IsEnvironment("Docker"))
+                // {
+                //     options.IssuerUri = "identity-svc";
+                // }
 
-                if (builder.Environment.IsProduction())
-                {
-                    options.IssuerUri = "https://id.trycatchlearn.com";
-                }
-
-                // see https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/
-                // options.EmitStaticAudienceClaim = true;
+                // if (builder.Environment.IsProduction())
+                // {
+                //     options.IssuerUri = "https://id.trycatchlearn.com";
+                // }
             })
             .AddInMemoryIdentityResources(Config.IdentityResources)
             .AddInMemoryApiScopes(Config.ApiScopes)
             // .AddInMemoryClients(Config.Clients(builder.Configuration))
+            .AddInMemoryClients(Config.Clients)
             .AddAspNetIdentity<ApplicationUser>();
         // .AddProfileService<CustomProfileService>();
 
@@ -65,6 +67,15 @@ internal static class HostingExtensions
         });
 
         builder.Services.AddAuthentication();
+        // builder.Services.AddAuthentication(options =>
+        // {
+        //     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        //     options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        //     options.DefaultForbidScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        //     options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        //     options.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        //     options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+        // });
 
         return builder.Build();
     }
@@ -94,10 +105,11 @@ internal static class HostingExtensions
 
 
         app.UseIdentityServer();
+        app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapRazorPages()
-            .RequireAuthorization();
+        app.MapRazorPages();
+            // .RequireAuthorization();
 
         return app;
     }
