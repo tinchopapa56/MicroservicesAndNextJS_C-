@@ -2,6 +2,7 @@ using Duende.IdentityServer;
 using Duende.IdentityServer.Services;
 using IdentityService.Data;
 using IdentityService.Models;
+using IdentityService.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Identity;
@@ -58,8 +59,8 @@ internal static class HostingExtensions
             .AddInMemoryApiScopes(Config.ApiScopes)
             // .AddInMemoryClients(Config.Clients(builder.Configuration))
             .AddInMemoryClients(Config.Clients)
-            .AddAspNetIdentity<ApplicationUser>();
-        // .AddProfileService<CustomProfileService>();
+            .AddAspNetIdentity<ApplicationUser>()
+            .AddProfileService<CustomProfileService>();
 
         builder.Services.ConfigureApplicationCookie(options =>
         {
