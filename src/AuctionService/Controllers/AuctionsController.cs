@@ -63,7 +63,7 @@ namespace AuctionService.Controllers
         public async Task<ActionResult<AuctionDto>> CreateAuction(CreateAuctionDto auctionDto)
         {
             var auction = _mapper.Map<Auction>(auctionDto);
-            //TO-Do: add auth check
+            
             auction.Seller = User.Identity.Name;
 
             _context.Auctions.Add(auction);
@@ -92,8 +92,12 @@ namespace AuctionService.Controllers
 
             if(auction is null) return NotFound();
 
-            bool editorIsNotSeller = auction.Seller != User.Identity.Name; 
-            if(editorIsNotSeller) return Forbid();
+            bool canEdit = auction.Seller == User.Identity.Name; 
+            if(!canEdit) return Forbid();
+
+            Console.WriteLine(canEdit);
+            Console.WriteLine(auction.Seller);
+            Console.WriteLine(User.Identity.Name);
 
             //TO-Do: add auth check, seller==user
             auction.Item.Make = updateAuctionDto.Make ?? auction.Item.Make;
@@ -120,8 +124,8 @@ namespace AuctionService.Controllers
             var auction = await _context.Auctions.FindAsync(auctionId);
             if(auction is null) return NotFound();
             
-            bool editorIsNotSeller = auction.Seller != User.Identity.Name; 
-            if(editorIsNotSeller) return Forbid();
+            bool canDelete = auction.Seller == User.Identity.Name; 
+            if(!canDelete) return Forbid();
 
             _context.Auctions.Remove(auction);
 

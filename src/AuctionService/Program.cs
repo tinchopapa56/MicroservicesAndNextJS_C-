@@ -42,12 +42,12 @@ builder.Services.AddMassTransit(x =>
     });
 });
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-.AddJwtBearer(opts => {
-    opts.Authority = builder.Configuration["IdentityServiceUrl"];
-    opts.RequireHttpsMetadata = false;
-    opts.TokenValidationParameters.ValidateAudience = false;
-    opts.TokenValidationParameters.NameClaimType = "usernam";
-});
+    .AddJwtBearer(opts => {
+        opts.Authority = builder.Configuration["IdentityServiceUrl"];
+        opts.RequireHttpsMetadata = false;
+        opts.TokenValidationParameters.ValidateAudience = false;
+        opts.TokenValidationParameters.NameClaimType = "username";
+    });
 
 
 var app = builder.Build();
