@@ -2,6 +2,8 @@ using AuctionService.Data;
 using AuctionService.Data.DTOs;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Contracts;
+using MassTransit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +16,12 @@ namespace AuctionService.Controllers
     {
         private readonly AuctionDbContext _context;
         private readonly IMapper _mapper;
-        public AuctionsController(AuctionDbContext context, IMapper mapper)
+        private readonly IPublishEndpoint _publishEndpoint;
+        public AuctionsController(AuctionDbContext context, IMapper mapper, IPublishEndpoint publishEndpoint)
         {
             _context = context;
             _mapper = mapper;
+            _publishEndpoint = publishEndpoint;
         }
         [HttpGet]
         public async Task<ActionResult<List<AuctionDto>>> GetAllAuctions(string date)
@@ -40,6 +44,7 @@ namespace AuctionService.Controllers
             return await query.ProjectTo<AuctionDto>(_mapper.ConfigurationProvider).ToListAsync();
 
         }
+        
         [HttpGet("{auctionId}")]
         public async Task<ActionResult<AuctionDto>> GetAuctionById(Guid auctionId)
         {
@@ -52,24 +57,32 @@ namespace AuctionService.Controllers
 
             return _mapper.Map<AuctionDto>(auction);
         }
-        // [Authorize]
+
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<AuctionDto>> CreateAuction(CreateAuctionDto auctionDto)
         {
             var auction = _mapper.Map<Auction>(auctionDto);
             //TO-Do: add auth check
-            auction.Seller = "TestUser";
+            auction.Seller = User.Identity.Name;
 
             _context.Auctions.Add(auction);
+
+
+            var newAuction = _mapper.Map<AuctionDto>(auction);
+
+            await _publishEndpoint.Publish(_mapper.Map<AuctionCreated>(newAuction));
 
             var result = await _context.SaveChangesAsync() > 0;
 
             if (!result) return BadRequest("Could not save changes to the DB");
 
             return CreatedAtAction(nameof(GetAuctionById), 
-                new {auctionId = auction.Id}, _mapper.Map<AuctionDto>(auction)
+                new {auctionId = auction.Id},newAuction
             );
         }
+        
+        [Authorize]
         [HttpPut("{auctionId}")]
         public async Task<ActionResult> UpdateAuction(Guid auctionId, UpdateAuctionDto updateAuctionDto)
         {
@@ -79,6 +92,9 @@ namespace AuctionService.Controllers
 
             if(auction is null) return NotFound();
 
+            bool editorIsNotSeller = auction.Seller != User.Identity.Name; 
+            if(editorIsNotSeller) return Forbid();
+
             //TO-Do: add auth check, seller==user
             auction.Item.Make = updateAuctionDto.Make ?? auction.Item.Make;
             auction.Item.Model = updateAuctionDto.Model ?? auction.Item.Model;
@@ -86,16 +102,26 @@ namespace AuctionService.Controllers
             auction.Item.Mileage = updateAuctionDto.Mileage ?? auction.Item.Mileage;
             auction.Item.Year = updateAuctionDto.Year ?? auction.Item.Year;
 
-            var result = await _context.SaveChangesAsync ()> 0;
+            var auctionUpdatedMsg = _mapper.Map<AuctionUpdated>(auction);
+
+            await _publishEndpoint.Publish(auctionUpdatedMsg);
+
+            var result = await _context.SaveChangesAsync () > 0;
+            
             if(result) return Ok();
 
             return BadRequest("Problem saving Changes");
         }
+        
+        [Authorize]
         [HttpDelete("{auctionId}")]
         public async Task<ActionResult> DeleteAuction(Guid auctionId)
         {
             var auction = await _context.Auctions.FindAsync(auctionId);
             if(auction is null) return NotFound();
+            
+            bool editorIsNotSeller = auction.Seller != User.Identity.Name; 
+            if(editorIsNotSeller) return Forbid();
 
             _context.Auctions.Remove(auction);
 
