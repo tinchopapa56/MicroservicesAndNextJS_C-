@@ -1,17 +1,19 @@
 import React from 'react'
-import { AiOutlineCar } from 'react-icons/ai'
+import Logo from './Logo'
+import LoginButton from './LoginButton'
+import Search from './Search'
 
-type Props = {}
-
-const Navbar = (props: Props) => {
-    console.log("Client Component")
+const Navbar = () => {
     return (
-        <header className="sticky top-0 z-50 flex justify-betweeen bg-white p-5 items-center text-gray-800 shadow-md">
-            <div>
-                <div>Left</div>
-                <div>Middle</div>
-                <div>Right</div>
-            </div>
+        <header className="sticky top-0 z-50 flex justify-between bg-white p-5 items-center text-gray-800 shadow-md">
+            <Logo />
+            <Search />
+            <LoginButton />
+            {/* {user ? (
+          <UserActions user={user} />
+        ) : (
+          <LoginButton />
+        )} */}
         </header>
     )
 }

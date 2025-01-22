@@ -1,5 +1,6 @@
 // import { useParamsStore } from '@/hooks/useParamsStore';
-import { Button } from 'flowbite-react';
+import { useParamsStore } from '@/hooks/useParamsStore';
+import { Button, ButtonGroup } from 'flowbite-react';
 import React from 'react'
 import { AiOutlineClockCircle, AiOutlineSortAscending } from 'react-icons/ai';
 import { BsFillStopCircleFill, BsStopwatchFill } from 'react-icons/bs';
@@ -49,9 +50,10 @@ type Props = {
     setPageSize: (size: number) => void
 }
 
-export default function Filters({pageSize, setPageSize} : Props) {
-    // const pageSize = useParamsStore(state => state.pageSize);
-    // const setParams = useParamsStore(state => state.setParams);
+// export default function Filters({pageSize, setPageSize} : Props) {
+export default function Filters() {
+    const pageSize = useParamsStore(state => state.pageSize)
+    const setParams = useParamsStore(state => state.setParams);
     // const orderBy = useParamsStore(state => state.orderBy);
     // const filterBy = useParamsStore(state => state.filterBy);
 
@@ -67,7 +69,8 @@ export default function Filters({pageSize, setPageSize} : Props) {
                         <Button
                             key={i}
                             // onClick={() => setParams({ filterBy: value })}
-                            onClick={() => setPageSize(value)}
+                            onClick={() => setParams({ pageSize: value })}
+                            // onClick={() => setPageSize(value)}
                             // color={`${filterBy === value ? 'red' : 'gray'}`}
                             color={`${pageSize === value ? 'red' : 'gray'}`}
                         >

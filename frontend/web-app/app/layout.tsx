@@ -15,11 +15,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        {/* <ToasterProvider /> */}
         <Navbar />
-        <main className="container mx-auto px-5 pt-10">
-
+        <main className='container mx-auto px-5 pt-10'>
+          {children}
         </main>
-        {children}
       </body>
     </html>
   );
