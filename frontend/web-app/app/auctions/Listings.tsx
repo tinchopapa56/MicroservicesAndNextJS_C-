@@ -1,29 +1,42 @@
-import React from 'react'
+"use client"
+import React, { useState, useEffect } from 'react'
 import AuctionCard from './AuctionCard';
-import HARD from "./hardcoded.json"
-import { TPagedResult, TAuction } from '@/types';
+import { AppPagination } from '../components';
+import { getData } from '../actions/auctionActions';
+import { TAuction } from '@/types';
+import Filters from './Filters';
 
-const getData = async () : Promise<TPagedResult<TAuction>>=> {
-    let res : any = await fetch("http://localhost:6001/search?pageSize=10");
 
-    // if (!res.ok) throw new Error("LISTINGS, Failed to fetch data");
-    if (!res.ok) {
-        res = {results: HARD}
-        return res
-    }
+const Listings = () => {
+    // const data = await getData();
+    const [auctions, setAuctions] = useState<TAuction[]>([]);
 
-    return res.json();
-}
+    const [pageCount, setPageCount] = useState(10);
+    const [pageNumber, setPageNumber] = useState(1);
+    const [pageSize, setPageSize] = useState(4);
 
-const Listings = async () => {
-    const data = await getData();
+    useEffect(() => {
+        getData(pageNumber, pageSize).then(data => {
+            setAuctions(data.results);
+            setPageNumber(data.pageCount);
+        })
+    }, [pageNumber, pageSize])
+
+    if(auctions.length === 0) return <h3>Loading...</h3>
 
     return (
-        <div className="grid grid-cols-4 gap-6">
-            {data && data.results.map(auction => (
-                <AuctionCard key={auction.id} auction={auction} />
-            ))}
-        </div>
+        <>
+            <Filters pageSize={pageSize} setPageSize={setPageSize}/>
+            <div className="grid grid-cols-4 gap-6">
+                {auctions.map(auction => (
+                    <AuctionCard key={auction.id} auction={auction} />
+                ))}
+            </div>
+            <div className='flex justify-center mt-4'>
+                <AppPagination onPageChange={setPageNumber} currentPage={pageNumber} pageCount={pageCount} />
+            </div>
+        </>
+
     )
 }
 export default Listings
