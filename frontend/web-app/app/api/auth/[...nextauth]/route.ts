@@ -32,27 +32,30 @@ export const authOptions: NextAuthOptions = {
             clientSecret: "secret"!,
             // issuer: process.env.ID_URL,
             issuer: "http://localhost:5000",
-            authorization: {params: {scope: 'openid profile auctionApp'}},
+            authorization: { params: { scope: 'openid profile auctionApp' } },
             idToken: true
         })
     ],
-    // callbacks: {
-    //     async jwt({token, profile, account}) {
-    //         if (profile) {
-    //             token.username = profile.username
-    //         }
-    //         if (account) {
-    //             token.access_token = account.access_token
-    //         }
-    //         return token;
-    //     },
-    //     async session({session, token}) {
-    //         if (token) {
-    //             session.user.username = token.username
-    //         }
-    //         return session;
-    //     }
-    // }
+    callbacks: {
+        async jwt({ token, profile, user, account }) {
+            console.log("TEST: ", { token, profile, user, account })
+            if (profile) {
+                token.username = profile.username
+            }
+            if (account) {
+                token.access_token = account.access_token
+            }
+            return token;
+        },
+        async session({ session, token }) {
+            if(token){
+                session.user.username = token.username;
+            }
+            console.log({ session, token })
+            return session
+        }
+
+    }
 }
 
 const handler = NextAuth(authOptions);
