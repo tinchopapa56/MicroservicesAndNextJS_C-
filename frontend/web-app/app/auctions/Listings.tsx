@@ -8,6 +8,7 @@ import { useParamsStore } from '@/hooks/useParamsStore';
 import { useShallow } from 'zustand/shallow';
 import { getData } from '../actions/auctionActions';
 import qs from 'query-string';
+import EmptyFilter from '../components/EmptyFilter';
 
 
 const Listings = () => {
@@ -16,7 +17,9 @@ const Listings = () => {
     const params = useParamsStore(useShallow(state => ({
         pageNumber: state.pageNumber,
         pageSize: state.pageSize,
-        searchTerm: null//state.searchTerm,
+        searchTerm: state.searchTerm,
+        orderBy: state.orderBy,
+        filterBy: state.filterBy
     })))
     const setParams = useParamsStore(state => state.setParams);
     const url = qs.stringifyUrl({url: "", query: params})
@@ -25,10 +28,6 @@ const Listings = () => {
         setParams({pageNumber})
     }
 
-    // const [pageCount, setPageCount] = useState(10);
-    // const [pageNumber, setPageNumber] = useState(1);
-    // const [pageSize, setPageSize] = useState(4);
-
     useEffect(() => {
         getData(url).then(data => {
             setData(data);
@@ -36,15 +35,11 @@ const Listings = () => {
         })
     }, [url])
     // }, [url, setData])
-    // useEffect(() => {
-    //     getData(pageNumber, pageSize).then(data => {
-    //         setAuctions(data.results);
-    //         setPageNumber(data.pageCount);
-    //     })
-    // }, [pageNumber, pageSize])
+   
 
     // if(auctions.length === 0) return <h3>Loading...</h3>
     if(!data) return <h3>Loading...</h3>
+    if(data.totalCount == 0) return <EmptyFilter showReset />
 
     return (
         <>

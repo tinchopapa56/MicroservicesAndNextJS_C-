@@ -6,6 +6,8 @@ type State = {
     pageCount: number
     searchTerm: string
     searchValue: string
+    orderBy: string
+    filterBy: string
 }
 
 type Actions = {
@@ -20,9 +22,11 @@ const initialState: State = {
     pageCount: 1,
     searchTerm: "",
     searchValue: "",
+    orderBy: "",
+    filterBy: ""
 }
 
-//zustand properly set up
+//Reducers
 export const useParamsStore = create<State & Actions>()((set) => ({
     ...initialState,
     setParams: (newParams: Partial<State>) => {
